@@ -1,0 +1,133 @@
+setwd("~/Downloads")
+#gdata package
+CPI<-read.xls("fredgraph(3).xls")
+ffr<-read.xls("fredgraph(1).xls")
+tenyr<-read.xls("fredgraph(2).xls")
+oneyr<-read.xls("fredgraph(5).xls")
+fiveyr<-read.xls("fredgraph(6).xls")
+threemo<-read.xls("fredgraph(8).xls")
+tenminthree<-read.xls("fredgraph(9).xls")
+CPI<-CPI[585:825,2]
+ffr<-ffr[495:735,2]
+threemo<-threemo[165:405,2]
+oneyr<-oneyr[405:645,2]
+fiveyr<-fiveyr[405:645,2]
+tenyr<-tenyr[405:645,2]
+tenminthree<-tenminthree[165:405,2]
+CPI<-as.matrix(CPI,length(CPI),1)
+ffr<-as.matrix(ffr,length(ffr),1)
+threemo<-as.matrix(threemo,length(threemo),1)
+oneyr<-as.matrix(oneyr,length(oneyr),1)
+fiveyr<-as.matrix(fiveyr,length(fiveyr),1)
+tenyr<-as.matrix(tenyr,length(tenyr),1)
+tenminthree<-as.matrix(tenminthree,length(tenminthree),1)
+qe1<-vector(mode="numeric",length=241)
+a<-(179:186)
+qe2<-vector(mode="numeric",length=241)
+b<-(191:198)
+qe3<-vector(mode="numeric",length=241)
+c<-(213:238)
+ot<-vector(mode="numeric",length=241)
+d<-(201:216)
+for(i in 1:241){
+  for(j in 1:8){
+    if(i==a[j]){
+      qe1[i]<-1
+    }
+    if(i==b[j]){
+      qe2[i]<-1
+    }
+  }
+}
+for(i in 1:241){
+  for(j in 1:26){
+    if(i==c[j]){
+      qe3[i]<-1
+    }
+  }
+}
+for(i in 1:241){
+  for(j in 1:16){
+    if(i==d[j]){
+      ot[i]<-1
+    }
+  }
+}
+df<-as.data.frame(cbind(as.numeric(CPI),as.numeric(ffr),as.numeric(threemo),as.numeric(oneyr),as.numeric(fiveyr),as.numeric(tenyr),as.numeric(tenminthree),as.numeric(qe1),as.numeric(qe2),as.numeric(qe3),as.numeric(ot)))
+colnames(df)<-c("CPI","ffr","threem","one","five","ten","diff","QE1","QE2","QE3","OT")
+###clean the data first### db<-cbind(CPI,ffr,3motcmr,1yrtcmr,5yrtcmr,10yrtcmr,20yrtcmr,30yrtcmr,10min3tcmr)
+one<-lm(df$one~df$CPI+df$ffr+df$QE1+df$QE2+df$QE3+df$OT)
+five<-lm(df$five~df$CPI+df$ffr+df$QE1+df$QE2+df$QE3+df$OT)
+ten<-lm(df$ten~df$CPI+df$ffr+df$QE1+df$QE2+df$QE3+df$OT)
+three<-lm(df$threem~df$CPI+df$ffr+df$QE1+df$QE2+df$QE3+df$OT)
+diff<-lm(df$diff~df$CPI+df$ffr+df$QE1+df$QE2+df$QE3+df$OT)
+#car package
+dw<-durbinWatsonTest(lm(df$one~df$CPI+df$ffr+df$QE1+df$QE2+df$QE3+df$OT),max.lag=30)
+#DataCombine package
+#lmtest package
+#one year interest rates
+df<-slide(df,Var="one",slideBy=-1)
+df<-slide(df,Var="one",slideBy=-2)
+colnames(df)<-c("CPI","ffr","threem","one","five","ten","diff","QE1","QE2","QE3","OT","lagone","lagtwo")
+oneAR<-lm(df$one~df$CPI+df$ffr+df$QE1+df$QE2+df$QE3+df$OT+df$lagone+df$lagtwo)
+dw1<-dwtest(lm(df$one~df$CPI+df$ffr+df$QE1+df$QE2+df$QE3+df$OT+df$lagone+df$lagtwo))
+df<-df[,-13]
+df<-df[,-12]
+#Five year interest rates
+df<-slide(df,Var="five",slideBy=-1)
+df<-slide(df,Var="five",slideBy=-2)
+colnames(df)<-c("CPI","ffr","threem","one","five","ten","diff","QE1","QE2","QE3","OT","lagone","lagtwo")
+fiveAR<-lm(df$five~df$CPI+df$ffr+df$QE1+df$QE2+df$QE3+df$OT+df$lagone+df$lagtwo)
+dw5<-dwtest(lm(df$five~df$CPI+df$ffr+df$QE1+df$QE2+df$QE3+df$OT+df$lagone+df$lagtwo))
+df<-df[,-13]
+df<-df[,-12]
+#ten year interest rates
+df<-slide(df,Var="ten",slideBy=-1)
+df<-slide(df,Var="ten",slideBy=-2)
+colnames(df)<-c("CPI","ffr","threem","one","five","ten","diff","QE1","QE2","QE3","OT","lagone","lagtwo")
+tenAR<-lm(df$ten~df$CPI+df$ffr+df$QE1+df$QE2+df$QE3+df$OT+df$lagone+df$lagtwo)
+dw10<-dwtest(lm(df$ten~df$CPI+df$ffr+df$QE1+df$QE2+df$QE3+df$OT+df$lagone+df$lagtwo))
+df<-df[,-13]
+df<-df[,-12]
+
+#three month interest rates
+df<-slide(df,Var="threem",slideBy=-1)
+df<-slide(df,Var="threem",slideBy=-2)
+colnames(df)<-c("CPI","ffr","threem","one","five","ten","diff","QE1","QE2","QE3","OT","lagone","lagtwo")
+threemAR<-lm(df$threem~df$CPI+df$ffr+df$QE1+df$QE2+df$QE3+df$OT+df$lagone+df$lagtwo)
+dw3<-dwtest(lm(df$threem~df$CPI+df$ffr+df$QE1+df$QE2+df$QE3+df$OT+df$lagone+df$lagtwo))
+df<-df[,-13]
+df<-df[,-12]
+
+#ten minus three difference interest rates
+df<-slide(df,Var="diff",slideBy=-1)
+df<-slide(df,Var="diff",slideBy=-2)
+colnames(df)<-c("CPI","ffr","threem","one","five","ten","diff","QE1","QE2","QE3","OT","lagone","lagtwo")
+diffAR<-lm(df$diff~df$CPI+df$ffr+df$QE1+df$QE2+df$QE3+df$OT+df$lagone+df$lagtwo)
+dwdiff<-dwtest(lm(df$diff~df$CPI+df$ffr+df$QE1+df$QE2+df$QE3+df$OT+df$lagone+df$lagtwo))
+df<-df[,-13]
+df<-df[,-12]
+ 
+#predictions
+predthree<-vector()
+predone<-vector()
+predfive<-vector()
+predten<-vector()
+preddiff<-vector()
+predthree<-c(.0007926,.0007926,.0007926,.0007926,.0007926,.0007926)+(-.0380581)*c(-.7,-.7,-.7,-.7,-.7,-.7)+(.4682020)*seq(0,10,2)+(1.0640903)*c(.03,.03,.03,.03,.03,.03)+(-.5589846)*c(.02,.02,.02,.02,.02,.02)
+predone<-c(.036302,.036302,.036302,.036302,.036302,.036302)+(.006952)*c(-.7,-.7,-.7,-.7,-.7,-.7)+(.086646)*seq(0,10,2)+(1.426517)*c(.21,.21,.21,.21,.21,.21)+(-.525890)*c(.13,.13,.13,.13,.13,.13)
+predfive<-c(.111897,.111897,.111897,.111897,.111897,.111897)+(.105166)*c(-.7,-.7,-.7,-.7,-.7,-.7)+(.036656)*seq(0,10,2)+(1.204024)*c(1.64,1.64,1.64,1.64,1.64,1.64)+(-.269331)*c(1.62,1.62,1.62,1.62,1.62,1.62)
+predten<-c(.18883,.18883,.18883,.18883,.18883,.18883)+(.13255)*c(-.7,-.7,-.7,-.7,-.7,-.7)+(.02921)*seq(0,10,2)+(1.14116)*c(2.21,2.21,2.21,2.21,2.21,2.21)+(-.21182)*c(2.33,2.33,2.33,2.33,2.33,2.33)
+preddiff<-c(.40444,.40444,.40444,.40444,.40444,.40444)+(.09469)*c(-.7,-.7,-.7,-.7,-.7,-.7)+(-.06433)*seq(0,10,2)+(1.20472)*c(2.18,2.18,2.18,2.18,2.18,2.18)+(-.33620)*c(2.3,2.3,2.3,2.3,2.3,2.3)
+t<-c(predthree[1],predone[1],predfive[1],predten[1])
+f<-c(predthree[2],predone[2],predfive[2],predten[2])
+s<-c(predthree[3],predone[3],predfive[3],predten[3])
+e<-c(predthree[4],predone[4],predfive[4],predten[4])
+te<-c(predthree[5],predone[5],predfive[5],predten[5])
+Maturity<-c(1,2,3,4)
+plot(Maturity,t,type="l",xlim=c(0,4),ylim=c(0,4),ylab="Rate")
+lines(Maturity,t,col=2)
+lines(Maturity,f,col=3)
+lines(Maturity,s,col=4)
+lines(Maturity,e,col=5)
+lines(Maturity,te,col=6)
